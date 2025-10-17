@@ -8,7 +8,7 @@ from memory import get_memory
 
 def create_agent_graph():
     """Create the LangGraph agent workflow."""
-    print("🔧 Building LangGraph workflow...")
+    print("Building LangGraph workflow...")
     
     # Initialize the graph with our state
     workflow = StateGraph(AgentState)
@@ -42,7 +42,7 @@ def create_agent_graph():
     # Compile the graph
     app = workflow.compile()
     
-    print("✅ LangGraph workflow created successfully!")
+    print("SUCCESS: LangGraph workflow created successfully!")
     return app
 
 
@@ -51,7 +51,7 @@ def run_agent(user_input: str, app=None):
     if app is None:
         app = create_agent_graph()
     
-    print(f"\n🚀 Starting agent with input: '{user_input}'")
+    print(f"\nStarting agent with input: '{user_input}'")
     print("=" * 50)
     
     # Create initial state
@@ -71,33 +71,33 @@ def run_agent(user_input: str, app=None):
     result = app.invoke(initial_state)
     
     print("=" * 50)
-    print("🎯 Agent execution completed!")
-    print(f"📊 Total messages: {len(result['messages'])}")
-    print(f"✅ Complete: {result['is_complete']}")
+    print("Agent execution completed!")
+    print(f"Total messages: {len(result['messages'])}")
+    print(f"Complete: {result['is_complete']}")
     
     # Show email status
     if result.get('email_sent', False):
-        print(f"📧 Email sent: {result['email_content']}")
+        print(f"Email sent: {result['email_content']}")
     else:
-        print("📧 No email sent")
+        print("No email sent")
     
     # Show memory stats
     memory = get_memory()
     stats = memory.get_memory_stats()
-    print(f"🧠 Memory: {stats['total_messages']} total messages stored")
+    print(f"Memory: {stats['total_messages']} total messages stored")
     
     return result
 
 
 def interactive_chat():
     """Run an interactive chat session."""
-    print("🤖 LangGraph AI Agent - Interactive Chat")
+    print("LangGraph AI Agent - Interactive Chat")
     print("Type 'quit' to exit")
     print("=" * 50)
     
     # Validate configuration
     if not validate_config():
-        print("❌ Please set up your .env file with OPENAI_API_KEY")
+        print("ERROR: Please set up your .env file with OPENAI_API_KEY")
         return
     
     # Create the agent
@@ -106,10 +106,10 @@ def interactive_chat():
     # Interactive loop
     while True:
         try:
-            user_input = input("\n👤 You: ").strip()
+            user_input = input("\nYou: ").strip()
             
             if user_input.lower() in ['quit', 'exit', 'bye']:
-                print("👋 Goodbye!")
+                print("Goodbye!")
                 break
             
             if not user_input:
@@ -120,13 +120,13 @@ def interactive_chat():
             result = run_agent(user_input, app)
             
             # Display the AI response
-            print(f"\n🤖 AI: {result['ai_response']}")
+            print(f"\nAI: {result['ai_response']}")
             
         except KeyboardInterrupt:
-            print("\n👋 Goodbye!")
+            print("\nGoodbye!")
             break
         except Exception as e:
-            print(f"❌ Error: {str(e)}")
+            print(f"Error: {str(e)}")
 
 
 if __name__ == "__main__":
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         # Single run mode
         user_input = " ".join(sys.argv[1:])
         result = run_agent(user_input)
-        print(f"\n🤖 AI: {result['ai_response']}")
+        print(f"\nAI: {result['ai_response']}")
     else:
         # Interactive mode
         interactive_chat()

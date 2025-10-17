@@ -9,7 +9,7 @@ from gmail_service import get_gmail_service
 
 def add_user_message(state: AgentState) -> AgentState:
     """Node 1: Store the user's input in chat history."""
-    print(f"📝 Adding user message: {state['user_input']}")
+    print(f"Adding user message: {state['user_input']}")
     
     user_message = ChatMessage(
         role="human",
@@ -29,7 +29,7 @@ def add_user_message(state: AgentState) -> AgentState:
     memory.add_message(user_message)
     memory.save_memory()
     
-    print(f"✅ User message stored. Total messages: {len(state['messages'])}")
+    print(f"SUCCESS: User message stored. Total messages: {len(state['messages'])}")
     return state
 
 
