@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Dict, Any
 from state import AgentState, ChatMessage
 from openai_service import get_openai_service
+from memory import get_memory
 
 
 def add_user_message(state: AgentState) -> AgentState:
@@ -17,6 +18,15 @@ def add_user_message(state: AgentState) -> AgentState:
     
     # Add to messages list
     state["messages"].append(user_message)
+    
+    # Load memory and add to current conversation
+    memory = get_memory()
+    all_messages = memory.get_messages() + state["messages"]
+    state["messages"] = all_messages
+    
+    # Save user message to memory
+    memory.add_message(user_message)
+    memory.save_memory()
     
     print(f"✅ User message stored. Total messages: {len(state['messages'])}")
     return state
@@ -60,6 +70,11 @@ def add_ai_message(state: AgentState) -> AgentState:
     
     # Add to messages list
     state["messages"].append(ai_message)
+    
+    # Save AI message to memory
+    memory = get_memory()
+    memory.add_message(ai_message)
+    memory.save_memory()
     
     # Mark as complete
     state["is_complete"] = True

@@ -3,6 +3,7 @@ from langgraph.graph import StateGraph, END
 from state import AgentState
 from nodes import add_user_message, generate_ai_response, add_ai_message
 from config import validate_config
+from memory import get_memory
 
 
 def create_agent_graph():
@@ -56,6 +57,11 @@ def run_agent(user_input: str, app=None):
     print("🎯 Agent execution completed!")
     print(f"📊 Total messages: {len(result['messages'])}")
     print(f"✅ Complete: {result['is_complete']}")
+    
+    # Show memory stats
+    memory = get_memory()
+    stats = memory.get_memory_stats()
+    print(f"🧠 Memory: {stats['total_messages']} total messages stored")
     
     return result
 

@@ -8,6 +8,9 @@ credentials.json
 token.json
 gmail.json
 
+# Memory files
+chat_memory.json
+
 # Python
 __pycache__/
 *.py[cod]
