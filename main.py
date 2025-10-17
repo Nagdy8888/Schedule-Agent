@@ -1,7 +1,7 @@
 """Main entry point for the LangGraph AI agent."""
 from langgraph.graph import StateGraph, END
 from state import AgentState
-from nodes import add_user_message, generate_ai_response, add_ai_message
+from nodes import add_user_message, generate_ai_response, add_ai_message, send_gmail_message, should_send_email
 from config import validate_config
 from memory import get_memory
 
@@ -17,15 +17,27 @@ def create_agent_graph():
     workflow.add_node("add_user_message", add_user_message)
     workflow.add_node("generate_ai_response", generate_ai_response)
     workflow.add_node("add_ai_message", add_ai_message)
+    workflow.add_node("send_gmail_message", send_gmail_message)
     
     # Set the entry point
     workflow.set_entry_point("add_user_message")
     
-    # Connect the nodes in sequence
-    # Flow: User Input → AI Response → Store Response → END
+    # Connect the nodes with conditional routing
+    # Flow: User Input → AI Response → Store Response → Check Email → Send Email (if needed) → END
     workflow.add_edge("add_user_message", "generate_ai_response")
     workflow.add_edge("generate_ai_response", "add_ai_message")
-    workflow.add_edge("add_ai_message", END)
+    
+    # Add conditional edge for email sending
+    workflow.add_conditional_edges(
+        "add_ai_message",
+        should_send_email,
+        {
+            True: "send_gmail_message",
+            False: END
+        }
+    )
+    
+    workflow.add_edge("send_gmail_message", END)
     
     # Compile the graph
     app = workflow.compile()
@@ -47,7 +59,12 @@ def run_agent(user_input: str, app=None):
         "user_input": user_input,
         "ai_response": "",
         "messages": [],
-        "is_complete": False
+        "to_email": "recipient@example.com",  # Default email
+        "email_subject": "Message from AI Agent",
+        "email_sent": False,
+        "email_content": "",
+        "is_complete": False,
+        "needs_email": False
     }
     
     # Run the graph
@@ -57,6 +74,12 @@ def run_agent(user_input: str, app=None):
     print("🎯 Agent execution completed!")
     print(f"📊 Total messages: {len(result['messages'])}")
     print(f"✅ Complete: {result['is_complete']}")
+    
+    # Show email status
+    if result.get('email_sent', False):
+        print(f"📧 Email sent: {result['email_content']}")
+    else:
+        print("📧 No email sent")
     
     # Show memory stats
     memory = get_memory()

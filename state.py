@@ -19,5 +19,12 @@ class AgentState(TypedDict):
     # Chat history for memory
     messages: List[ChatMessage]
     
+    # Email functionality
+    to_email: str
+    email_subject: str
+    email_sent: bool
+    email_content: str
+    
     # Control flow
     is_complete: bool
+    needs_email: bool
