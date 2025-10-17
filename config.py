@@ -10,14 +10,14 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
 
 # Gmail API
-GMAIL_CREDENTIALS_FILE = os.getenv("GMAIL_CREDENTIALS_FILE", "credentials.json")
+GMAIL_CREDENTIALS_FILE = os.getenv("GMAIL_CREDENTIALS_FILE", "gmail.json")
 GMAIL_TOKEN_FILE = os.getenv("GMAIL_TOKEN_FILE", "token.json")
 
 # Weather API URL
 WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather"
 
 # Model configuration
-DEFAULT_MODEL = "gpt-3.5-turbo"
+DEFAULT_MODEL = "gpt-4o-mini"
 DEFAULT_TEMPERATURE = 0.7
 
 # Validation

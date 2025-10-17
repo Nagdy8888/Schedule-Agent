@@ -26,8 +26,20 @@ def generate_ai_response(state: AgentState) -> AgentState:
     """Node 2: Use OpenAI to generate response."""
     print(f"🤖 Generating AI response for: {state['user_input']}")
     
-    # For now, create a simple response (we'll add OpenAI in Step 3)
-    ai_response = f"I received your message: '{state['user_input']}'. This is a placeholder response from the AI agent!"
+    try:
+        # Get OpenAI service
+        openai_service = get_openai_service()
+        
+        # Generate response using OpenAI
+        ai_response = openai_service.generate_response(
+            messages=state["messages"],
+            user_input=state["user_input"]
+        )
+        
+    except Exception as e:
+        print(f"❌ Error in generate_ai_response: {str(e)}")
+        # Fallback response if OpenAI fails
+        ai_response = f"I received your message: '{state['user_input']}'. However, I'm having trouble connecting to my AI service right now."
     
     # Store the response in state
     state["ai_response"] = ai_response
