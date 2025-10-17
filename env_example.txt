@@ -4,6 +4,10 @@ OPENAI_API_KEY=your_openai_api_key_here
 # Weather API Key (OpenWeatherMap)
 WEATHER_API_KEY=your_weather_api_key_here
 
-# Gmail API Credentials
+# Gmail API Credentials (OAuth method)
 GMAIL_CREDENTIALS_FILE=credentials.json
 GMAIL_TOKEN_FILE=token.json
+
+# Gmail SMTP Credentials (App Password method - easier setup)
+GMAIL_EMAIL=your-email@gmail.com
+GMAIL_APP_PASSWORD=your-app-password-here
