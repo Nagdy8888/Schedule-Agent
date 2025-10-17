@@ -14,7 +14,7 @@ GMAIL_CREDENTIALS_FILE = os.getenv("GMAIL_CREDENTIALS_FILE", "gmail.json")
 GMAIL_TOKEN_FILE = os.getenv("GMAIL_TOKEN_FILE", "token.json")
 
 # Weather API URL
-WEATHER_API_URL = "http://api.openweathermap.org/data/2.5/weather"
+WEATHER_API_URL = os.getenv("WEATHER_API_KEY")
 
 # Model configuration
 DEFAULT_MODEL = "gpt-4o-mini"
