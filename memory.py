@@ -22,12 +22,12 @@ class ChatMemory:
                 with open(self.memory_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     self.messages = data.get('messages', [])
-                print(f"📚 Loaded {len(self.messages)} messages from memory")
+                print(f"Loaded {len(self.messages)} messages from memory")
             else:
-                print("📚 No existing memory found, starting fresh")
+                print("No existing memory found, starting fresh")
                 self.messages = []
         except Exception as e:
-            print(f"❌ Error loading memory: {str(e)}")
+            print(f"ERROR loading memory: {str(e)}")
             self.messages = []
     
     def save_memory(self):
@@ -42,19 +42,19 @@ class ChatMemory:
             with open(self.memory_file, 'w', encoding='utf-8') as f:
                 json.dump(memory_data, f, indent=2, ensure_ascii=False)
             
-            print(f"💾 Saved {len(self.messages)} messages to memory")
+            print(f"Saved {len(self.messages)} messages to memory")
         except Exception as e:
-            print(f"❌ Error saving memory: {str(e)}")
+            print(f"ERROR saving memory: {str(e)}")
     
     def add_message(self, message: ChatMessage):
         """Add a message to memory."""
         self.messages.append(message)
-        print(f"➕ Added message to memory: {message['role']} - {message['content'][:50]}...")
+        print(f"Added message to memory: {message['role']} - {message['content'][:50]}...")
     
     def add_messages(self, messages: List[ChatMessage]):
         """Add multiple messages to memory."""
         self.messages.extend(messages)
-        print(f"➕ Added {len(messages)} messages to memory")
+        print(f"Added {len(messages)} messages to memory")
     
     def get_messages(self) -> List[ChatMessage]:
         """Get all messages from memory."""
@@ -68,7 +68,7 @@ class ChatMemory:
         """Clear all messages from memory."""
         self.messages = []
         self.save_memory()
-        print("🗑️ Memory cleared")
+        print("Memory cleared")
     
     def get_memory_stats(self) -> Dict[str, Any]:
         """Get memory statistics."""

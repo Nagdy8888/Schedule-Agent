@@ -69,7 +69,6 @@ def run_agent(user_input: str, app=None):
     
     # Run the graph
     result = app.invoke(initial_state)
-    
     print("=" * 50)
     print("Agent execution completed!")
     print(f"Total messages: {len(result['messages'])}")

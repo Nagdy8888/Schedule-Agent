@@ -38,10 +38,10 @@ class GmailService:
             
             # Build Gmail service
             self.service = build('gmail', 'v1', credentials=self.credentials)
-            print("✅ Gmail service initialized successfully")
+            print("SUCCESS: Gmail service initialized successfully")
             
         except Exception as e:
-            print(f"❌ Error setting up Gmail service: {str(e)}")
+            print(f"ERROR setting up Gmail service: {str(e)}")
             self.service = None
     
     def load_credentials(self) -> Optional[Credentials]:
@@ -50,7 +50,7 @@ class GmailService:
             if os.path.exists(GMAIL_TOKEN_FILE):
                 return Credentials.from_authorized_user_file(GMAIL_TOKEN_FILE, SCOPES)
         except Exception as e:
-            print(f"❌ Error loading credentials: {str(e)}")
+            print(f"ERROR loading credentials: {str(e)}")
         return None
     
     def save_credentials(self):
@@ -58,9 +58,9 @@ class GmailService:
         try:
             with open(GMAIL_TOKEN_FILE, 'w') as token:
                 token.write(self.credentials.to_json())
-            print("💾 Credentials saved to token file")
+            print("SUCCESS: Credentials saved to token file")
         except Exception as e:
-            print(f"❌ Error saving credentials: {str(e)}")
+            print(f"ERROR saving credentials: {str(e)}")
     
     def authenticate(self) -> Credentials:
         """Authenticate with Google OAuth2."""
@@ -72,21 +72,17 @@ class GmailService:
         return credentials
     
     def create_message(self, to: str, subject: str, body: str, from_email: str = None) -> Dict[str, str]:
-        """Create a Gmail message."""
-        if not from_email:
-            # Get the authenticated user's email
-            profile = self.service.users().getProfile(userId='me').execute()
-            from_email = profile['emailAddress']
+        """Create a Gmail message using proper Gmail API format."""
+        import base64
+        from email.mime.text import MIMEText
         
-        message = f"""To: {to}
-From: {from_email}
-Subject: {subject}
-
-{body}"""
+        # Create MIME message
+        message = MIMEText(body)
+        message['to'] = to
+        message['subject'] = subject
         
         # Encode message
-        import base64
-        message_bytes = message.encode('utf-8')
+        message_bytes = message.as_bytes()
         message_b64 = base64.urlsafe_b64encode(message_bytes).decode('utf-8')
         
         return {
@@ -97,11 +93,11 @@ Subject: {subject}
         """Send an email via Gmail API."""
         try:
             if not self.service:
-                print("❌ Gmail service not initialized")
+                print("ERROR: Gmail service not initialized")
                 return False
             
-            print(f"📧 Preparing to send email to: {to}")
-            print(f"📝 Subject: {subject}")
+            print(f"Preparing to send email to: {to}")
+            print(f"Subject: {subject}")
             
             # Create message
             message = self.create_message(to, subject, body, from_email)
@@ -112,14 +108,14 @@ Subject: {subject}
                 body=message
             ).execute()
             
-            print(f"✅ Email sent successfully! Message ID: {result['id']}")
+            print(f"SUCCESS: Email sent successfully! Message ID: {result['id']}")
             return True
             
         except HttpError as error:
-            print(f"❌ Gmail API error: {error}")
+            print(f"ERROR Gmail API: {error}")
             return False
         except Exception as e:
-            print(f"❌ Error sending email: {str(e)}")
+            print(f"ERROR sending email: {str(e)}")
             return False
     
     def is_available(self) -> bool:
