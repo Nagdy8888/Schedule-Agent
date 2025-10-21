@@ -48,7 +48,7 @@ def generate_ai_response(state: AgentState) -> AgentState:
         )
         
     except Exception as e:
-        print(f"❌ Error in generate_ai_response: {str(e)}")
+        print(f"ERROR in generate_ai_response: {str(e)}")
         # Fallback response if OpenAI fails
         ai_response = f"I received your message: '{state['user_input']}'. However, I'm having trouble connecting to my AI service right now."
     
