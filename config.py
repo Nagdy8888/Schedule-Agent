@@ -17,7 +17,7 @@ GMAIL_TOKEN_FILE = os.getenv("GMAIL_TOKEN_FILE", "token.json")
 WEATHER_API_URL = os.getenv("WEATHER_API_KEY")
 
 # Model configuration
-DEFAULT_MODEL = "gpt-4o-mini"
+DEFAULT_MODEL = "gpt-4o"
 DEFAULT_TEMPERATURE = 0.7
 
 # Validation

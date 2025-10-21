@@ -156,21 +156,54 @@ def send_gmail_message(state: AgentState) -> AgentState:
                     body = match.group(1).strip() if match.groups() else match.group(0).strip()
                     break
         
-        # If no specific pattern found, try to extract a simple greeting
+        # If no specific pattern found, try to extract content based on context
         if body == ai_response:  # No pattern matched
-            # Look for simple greeting patterns
-            greeting_patterns = [
-                r'Hello![^!]*!',
-                r'Hi[^!]*!',
-                r'Greetings[^!]*!',
-                r'I hope you are doing well[^!]*!',
-            ]
-            
-            for pattern in greeting_patterns:
-                match = re.search(pattern, ai_response, re.IGNORECASE)
-                if match:
-                    body = match.group(0).strip()
-                    break
+            # Check if this is a weather-related email
+            if any(word in user_input.lower() for word in ['weather', 'temperature', 'rain', 'forecast']):
+                # For weather emails, use the weather summary if available
+                if state.get('weather_summary'):
+                    body = state['weather_summary']
+                else:
+                    # Look for weather information in the AI response
+                    weather_patterns = [
+                        r'Current weather[^!]*',
+                        r'Temperature[^!]*',
+                        r'Weather[^!]*',
+                        r'Forecast[^!]*'
+                    ]
+                    
+                    for pattern in weather_patterns:
+                        match = re.search(pattern, ai_response, re.IGNORECASE)
+                        if match:
+                            body = match.group(0).strip()
+                            break
+            else:
+                # Look for simple greeting patterns
+                greeting_patterns = [
+                    r'Hello![^!]*!',
+                    r'Hi[^!]*!',
+                    r'Greetings[^!]*!',
+                    r'I hope you are doing well[^!]*!',
+                ]
+                
+                for pattern in greeting_patterns:
+                    match = re.search(pattern, ai_response, re.IGNORECASE)
+                    if match:
+                        body = match.group(0).strip()
+                        break
+        
+        # Special handling for weather emails - replace placeholders with actual data
+        if any(word in user_input.lower() for word in ['weather', 'temperature', 'rain', 'forecast']):
+            if state.get('weather_summary'):
+                # Replace the AI response with actual weather data
+                body = f"""Dear Mustafa,
+
+Here is today's weather information:
+
+{state['weather_summary']}
+
+Best regards,
+Your AI Assistant"""
         
         # Send email
         success = gmail_service.send_email(
@@ -209,7 +242,17 @@ def should_send_email(state: AgentState) -> bool:
         r'message.*to.*@',
         r'send.*gmail.*to',
         r'write.*email.*to',
-        r'compose.*email.*to'
+        r'compose.*email.*to',
+        r'send.*email.*with',
+        r'send.*email.*about',
+        r'send.*email.*info',
+        r'email.*with.*weather',
+        r'email.*weather.*info',
+        r'send.*weather.*email',
+        r'send.*weather.*info.*to',
+        r'send.*weather.*data.*to',
+        r'weather.*info.*to.*@',
+        r'weather.*data.*to.*@'
     ]
     
     # Check for explicit email sending requests
@@ -223,6 +266,14 @@ def should_send_email(state: AgentState) -> bool:
     
     # Check for email requests without specific address (like "send email to my manager")
     if any(phrase in user_input_lower for phrase in ['send email to my', 'send message to my', 'email my', 'message my']):
+        return True
+    
+    # Check for weather-related email requests
+    if any(phrase in user_input_lower for phrase in ['send weather', 'email weather', 'weather info', 'weather data', 'send weather info', 'send weather data']):
+        return True
+    
+    # Check for general email sending requests
+    if any(phrase in user_input_lower for phrase in ['send email', 'send an email', 'send the email', 'email the', 'email this']):
         return True
     
     return False
