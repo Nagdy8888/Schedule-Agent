@@ -1,4 +1,5 @@
 """Node functions for the basic AI agent."""
+import re
 from datetime import datetime
 from typing import Dict, Any
 from state import AgentState, ChatMessage
@@ -111,9 +112,7 @@ def send_gmail_message(state: AgentState) -> AgentState:
             to_email = email_matches[0]  # Use the first email found
             print(f"Found email in message: {to_email}")
         else:
-            # Default email if none found
-            to_email = "recipient@example.com"
-            print(f"No email found, using default: {to_email}")
+            print(f"No email found")
         
         # Extract subject from AI response first, then fallback to user input
         ai_response = state["ai_response"]
@@ -171,15 +170,6 @@ def send_gmail_message(state: AgentState) -> AgentState:
                     body = match.group(0).strip()
                     break
         
-        # If still no good content, create a simple greeting based on user input
-        if body == ai_response or len(body) < 10:
-            if "greeting" in user_input.lower():
-                body = "Hello! I hope you are doing well!"
-            elif "hello" in user_input.lower():
-                body = "Hello! How are you today?"
-            else:
-                body = "Hello! I hope this message finds you well."
-        
         # Send email
         success = gmail_service.send_email(
             to=to_email,
@@ -206,8 +196,31 @@ def send_gmail_message(state: AgentState) -> AgentState:
 
 def should_send_email(state: AgentState) -> bool:
     """Determine if we should send an email based on user input."""
-    # Simple keyword detection for email sending
-    email_keywords = ["email", "send", "gmail", "mail", "message"]
     user_input_lower = state["user_input"].lower()
     
-    return any(keyword in user_input_lower for keyword in email_keywords)
+    # Only send emails when explicitly requested with specific patterns
+    email_patterns = [
+        r'send.*email.*to',
+        r'send.*message.*to',
+        r'send.*to.*@',
+        r'email.*to.*@',
+        r'message.*to.*@',
+        r'send.*gmail.*to',
+        r'write.*email.*to',
+        r'compose.*email.*to'
+    ]
+    
+    # Check for explicit email sending requests
+    for pattern in email_patterns:
+        if re.search(pattern, user_input_lower):
+            return True
+    
+    # Also check for direct commands with email addresses
+    if re.search(r'@\w+\.\w+', user_input_lower) and any(word in user_input_lower for word in ['send', 'email', 'message']):
+        return True
+    
+    # Check for email requests without specific address (like "send email to my manager")
+    if any(phrase in user_input_lower for phrase in ['send email to my', 'send message to my', 'email my', 'message my']):
+        return True
+    
+    return False
