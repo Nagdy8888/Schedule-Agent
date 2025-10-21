@@ -25,6 +25,16 @@ class AgentState(TypedDict):
     email_sent: bool
     email_content: str
     
+    # Weather functionality
+    weather_data: Dict[str, Any]
+    weather_summary: str
+    needs_weather: bool
+    
+    # Time functionality
+    time_data: Dict[str, Any]
+    time_summary: str
+    needs_time: bool
+    
     # Control flow
     is_complete: bool
     needs_email: bool

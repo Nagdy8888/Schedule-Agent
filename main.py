@@ -1,7 +1,7 @@
 """Main entry point for the LangGraph AI agent."""
 from langgraph.graph import StateGraph, END
 from state import AgentState
-from nodes import add_user_message, generate_ai_response, add_ai_message, send_gmail_message, should_send_email
+from nodes import add_user_message, generate_ai_response, add_ai_message, send_gmail_message, should_send_email, get_weather_info, should_get_weather, check_email_routing
 from config import validate_config
 from memory import get_memory
 
@@ -17,19 +17,41 @@ def create_agent_graph():
     workflow.add_node("add_user_message", add_user_message)
     workflow.add_node("generate_ai_response", generate_ai_response)
     workflow.add_node("add_ai_message", add_ai_message)
+    workflow.add_node("get_weather_info", get_weather_info)
+    workflow.add_node("check_email_routing", check_email_routing)
     workflow.add_node("send_gmail_message", send_gmail_message)
     
     # Set the entry point
     workflow.set_entry_point("add_user_message")
     
     # Connect the nodes with conditional routing
-    # Flow: User Input → AI Response → Store Response → Check Email → Send Email (if needed) → END
+    # Flow: User Input → AI Response → Store Response → Check Weather → Check Email → Send Email (if needed) → END
     workflow.add_edge("add_user_message", "generate_ai_response")
     workflow.add_edge("generate_ai_response", "add_ai_message")
     
-    # Add conditional edge for email sending
+    # Add conditional edge for weather checking
     workflow.add_conditional_edges(
         "add_ai_message",
+        should_get_weather,
+        {
+            True: "get_weather_info",
+            False: "check_email_routing"
+        }
+    )
+    
+    # Add conditional edge for email sending after weather
+    workflow.add_conditional_edges(
+        "get_weather_info",
+        should_send_email,
+        {
+            True: "send_gmail_message",
+            False: END
+        }
+    )
+    
+    # Add conditional edge for email sending (when no weather needed)
+    workflow.add_conditional_edges(
+        "check_email_routing",
         should_send_email,
         {
             True: "send_gmail_message",
@@ -63,6 +85,9 @@ def run_agent(user_input: str, app=None):
         "email_subject": "Message from AI Agent",
         "email_sent": False,
         "email_content": "",
+        "weather_data": {},
+        "weather_summary": "",
+        "needs_weather": False,
         "is_complete": False,
         "needs_email": False
     }
@@ -79,6 +104,10 @@ def run_agent(user_input: str, app=None):
         print(f"Email sent: {result['email_content']}")
     else:
         print("No email sent")
+    
+    # Show weather status
+    if result.get('weather_summary'):
+        print(f"Weather: {result['weather_summary']}")
     
     # Show memory stats
     memory = get_memory()

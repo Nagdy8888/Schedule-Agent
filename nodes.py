@@ -6,6 +6,8 @@ from state import AgentState, ChatMessage
 from openai_service import get_openai_service
 from memory import get_memory
 from gmail_service import get_gmail_service
+from weather_service import get_weather_service
+from time_service import get_time_service
 
 
 def add_user_message(state: AgentState) -> AgentState:
@@ -222,5 +224,138 @@ def should_send_email(state: AgentState) -> bool:
     # Check for email requests without specific address (like "send email to my manager")
     if any(phrase in user_input_lower for phrase in ['send email to my', 'send message to my', 'email my', 'message my']):
         return True
+    
+    return False
+
+
+def get_weather_info(state: AgentState) -> AgentState:
+    """Node: Get current weather information."""
+    print("Getting weather information...")
+    
+    try:
+        # Initialize weather service
+        weather_service = get_weather_service()
+        print("SUCCESS: Weather service initialized successfully")
+        
+        # Get weather data
+        weather_data = weather_service.get_current_weather()
+        
+        if "error" in weather_data:
+            state["weather_data"] = weather_data
+            state["weather_summary"] = f"Weather data unavailable: {weather_data['error']}"
+            print(f"ERROR: {weather_data['error']}")
+        else:
+            # Get weather summary
+            weather_summary = weather_service.get_weather_summary()
+            
+            state["weather_data"] = weather_data
+            state["weather_summary"] = weather_summary
+            print("SUCCESS: Weather data retrieved successfully")
+            
+    except Exception as e:
+        print(f"ERROR in get_weather_info: {str(e)}")
+        state["weather_data"] = {"error": f"Weather service error: {str(e)}"}
+        state["weather_summary"] = f"Weather data unavailable: {str(e)}"
+    
+    return state
+
+
+def should_get_weather(state: AgentState) -> bool:
+    """Determine if we should get weather information based on user input."""
+    user_input_lower = state["user_input"].lower()
+    
+    # Weather-related keywords
+    weather_keywords = [
+        "weather", "temperature", "rain", "sunny", "cloudy", "wind", 
+        "humidity", "forecast", "climate", "storm", "snow", "hot", "cold"
+    ]
+    
+    # Check for weather-related requests
+    for keyword in weather_keywords:
+        if keyword in user_input_lower:
+            return True
+    
+    # Check for specific weather questions
+    weather_questions = [
+        "what's the weather", "how's the weather", "weather today",
+        "current weather", "weather forecast", "is it raining",
+        "is it sunny", "temperature outside"
+    ]
+    
+    for question in weather_questions:
+        if question in user_input_lower:
+            return True
+    
+    return False
+
+
+def check_email_routing(state: AgentState) -> AgentState:
+    """Simple routing node to check if email should be sent."""
+    return state
+
+
+def check_time_routing(state: AgentState) -> AgentState:
+    """Simple routing node to check if time should be retrieved."""
+    return state
+
+
+def get_time_info(state: AgentState) -> AgentState:
+    """Node: Get current date and time information."""
+    print("Getting time information...")
+    
+    try:
+        # Initialize time service
+        time_service = get_time_service()
+        print("SUCCESS: Time service initialized successfully")
+        
+        # Get time data
+        time_data = time_service.get_current_time()
+        
+        if "error" in time_data:
+            state["time_data"] = time_data
+            state["time_summary"] = f"Time data unavailable: {time_data['error']}"
+            print(f"ERROR: {time_data['error']}")
+        else:
+            # Get time summary
+            time_summary = time_service.get_time_summary()
+            
+            state["time_data"] = time_data
+            state["time_summary"] = time_summary
+            print("SUCCESS: Time data retrieved successfully")
+            
+    except Exception as e:
+        print(f"ERROR in get_time_info: {str(e)}")
+        state["time_data"] = {"error": f"Time service error: {str(e)}"}
+        state["time_summary"] = f"Time data unavailable: {str(e)}"
+    
+    return state
+
+
+def should_get_time(state: AgentState) -> bool:
+    """Determine if we should get time information based on user input."""
+    user_input_lower = state["user_input"].lower()
+    
+    # Time-related keywords
+    time_keywords = [
+        "time", "date", "today", "now", "current", "clock", "calendar",
+        "day", "month", "year", "hour", "minute", "second", "weekday",
+        "weekend", "morning", "afternoon", "evening", "night"
+    ]
+    
+    # Check for time-related requests
+    for keyword in time_keywords:
+        if keyword in user_input_lower:
+            return True
+    
+    # Check for specific time questions
+    time_questions = [
+        "what time is it", "what's the time", "current time", "what date is it",
+        "what's the date", "current date", "what day is it", "what day is today",
+        "what month is it", "what year is it", "when is it", "how late is it"
+    ]
+    
+    for question in time_questions:
+        if question in user_input_lower:
+            return True
     
     return False

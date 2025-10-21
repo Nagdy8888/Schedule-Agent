@@ -48,10 +48,23 @@ class OpenAIService:
                 "content": user_input
             })
             
-            # Add system message to inform AI about email capabilities and user info
+            # Get current time information
+            from datetime import datetime
+            import pytz
+            
+            # Get current time in Cairo timezone
+            cairo_tz = pytz.timezone('Africa/Cairo')
+            now = datetime.now(cairo_tz)
+            
+            current_time_info = f"""Current Date and Time: {now.strftime('%A, %B %d, %Y at %I:%M %p')} (Cairo time)
+Today is: {now.strftime('%A, %B %d, %Y')}
+Current time: {now.strftime('%I:%M %p')}
+Timezone: Africa/Cairo"""
+            
+            # Add system message to inform AI about capabilities and user info
             system_message = {
                 "role": "system",
-                "content": "You are an AI assistant with the ability to send emails via Gmail. You are helping Mustafa Alnagdy, who is an ML/AI agent developer intern at MIS company (owned by Eng Samer Hany). When asked about Mustafa's work or background, you can share that he is an ML/AI agent developer intern at MIS company, which is owned by Eng Samer Hany. ONLY send emails when users explicitly request it with phrases like 'send email to', 'send message to', or 'email to [address]'. Do NOT send emails for general conversation, questions, or casual chat. When users DO ask you to send emails, generate a proper email with a relevant subject line and professional email body. Format your response EXACTLY as: 'Subject: [appropriate subject]' followed by a newline and then the email body content. Do not include any additional text like 'I will send this', 'Sending now', or any other commentary. Just provide the subject and body content in proper email format."
+                "content": f"You are an AI assistant with the ability to send emails via Gmail and access real-time weather information. You are helping Mustafa Alnagdy, who is an ML/AI agent developer intern at MIS company (owned by Eng Samer Hany). When asked about Mustafa's work or background, you can share that he is an ML/AI agent developer intern at MIS company, which is owned by Eng Samer Hany. You have access to current weather data and always know the current date and time.\n\n{current_time_info}\n\nWhen users ask about time, date, or current information, provide the current time details. ONLY send emails when users explicitly request it with phrases like 'send email to', 'send message to', or 'email to [address]'. Do NOT send emails for general conversation, questions, or casual chat. When users DO ask you to send emails, generate a proper email with a relevant subject line and professional email body. Format your response EXACTLY as: 'Subject: [appropriate subject]' followed by a newline and then the email body content. Do not include any additional text like 'I will send this', 'Sending now', or any other commentary. Just provide the subject and body content in proper email format."
             }
             # Insert system message at the beginning to ensure it's prioritized
             api_messages.insert(0, system_message)
