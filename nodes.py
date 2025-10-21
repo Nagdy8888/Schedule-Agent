@@ -35,7 +35,7 @@ def add_user_message(state: AgentState) -> AgentState:
 
 def generate_ai_response(state: AgentState) -> AgentState:
     """Node 2: Use OpenAI to generate response."""
-    print(f"🤖 Generating AI response for: {state['user_input']}")
+    print(f"Generating AI response for: {state['user_input']}")
     
     try:
         # Get OpenAI service
