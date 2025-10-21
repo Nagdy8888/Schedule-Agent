@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Chat Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .ai-message {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            margin-right: auto;
+        }
+
+        .status-message {
+            background: #28a745;
+            color: white;
+            text-align: center;
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .error-message {
+            background: #dc3545;
+            color: white;
+            text-align: center;
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .clear-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .clear-button:hover {
+            background: #5a6268;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-indicator {
+            display: none;
+            text-align: left;
+            color: #666;
+            font-style: italic;
+            padding: 10px 16px;
+            background: #f8f9fa;
+            border-radius: 18px;
+            margin: 10px 0;
+            max-width: 80%;
+        }
+
+        .typing-dots {
+            display: inline-block;
+            animation: typing 1.4s infinite;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0; }
+            30% { opacity: 1; }
+        }
+
+        .example-commands {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .example-commands h4 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .example-commands .command {
+            background: white;
+            padding: 5px 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .example-commands .command:hover {
+            background: #f8f9fa;
+        }
+
+        .agent-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 13px;
+        }
+
+        .agent-info strong {
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🤖 AI Agent Chat</h1>
+            <p>Send emails, get weather info, and chat with your AI assistant</p>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="agent-info">
+                <strong>Agent Capabilities:</strong> Send emails via Gmail, get real-time weather, tell jokes, share wisdom, and more! 
+                <br><strong>Personal Info:</strong> Helping Mustafa Alnagdy (ML/AI agent developer intern at MIS company)
+            </div>
+
+            <div class="example-commands">
+                <h4>💡 Try these commands:</h4>
+                <div class="command" onclick="sendMessage('Hello, how are you?')">Hello, how are you?</div>
+                <div class="command" onclick="sendMessage('What time is it now?')">What time is it now?</div>
+                <div class="command" onclick="sendMessage('send a joke to test@example.com')">Send a joke to test@example.com</div>
+                <div class="command" onclick="sendMessage('send weather info to friend@example.com')">Send weather info to friend@example.com</div>
+                <div class="command" onclick="sendMessage('ask the same email if he is free tomorrow')">Ask the same email if he is free tomorrow</div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <form class="chat-input-form" onsubmit="sendMessage(event)">
+                <input 
+                    type="text" 
+                    class="chat-input" 
+                    id="messageInput" 
+                    placeholder="Type your message here... (e.g., 'send a joke to test@example.com')"
+                    autocomplete="off"
+                >
+                <button type="submit" class="send-button" id="sendButton">Send</button>
+                <button type="button" class="clear-button" onclick="clearChat()">Clear Chat</button>
+            </form>
+            <div class="loading" id="loading">AI is thinking...</div>
+        </div>
+    </div>
+
+    <script>
+        function addMessage(content, type) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+            messageDiv.textContent = content;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addStatusMessage(content, isError = false) {
+            const chatMessages = document.getElementById('chatMessages');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = isError ? 'error-message' : 'status-message';
+            statusDiv.textContent = content;
+            chatMessages.appendChild(statusDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            document.getElementById('sendButton').disabled = show;
+        }
+
+        async function sendMessage(input) {
+            let message;
+            if (typeof input === 'string') {
+                message = input;
+                document.getElementById('messageInput').value = message;
+            } else {
+                event.preventDefault();
+                message = document.getElementById('messageInput').value.trim();
+            }
+
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            document.getElementById('messageInput').value = '';
+            showLoading(true);
+
+            // Show typing indicator
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = 'AI is typing<span class="typing-dots">...</span>';
+            typingDiv.style.display = 'block';
+            document.getElementById('chatMessages').appendChild(typingDiv);
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+
+            // Create AI message container for streaming
+            const aiMessageDiv = document.createElement('div');
+            aiMessageDiv.className = 'message ai-message';
+            aiMessageDiv.id = 'currentAiMessage';
+            aiMessageDiv.style.display = 'none';
+            document.getElementById('chatMessages').appendChild(aiMessageDiv);
+
+            try {
+                const response = await fetch('/chat/stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop(); // Keep incomplete line in buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                
+                                if (data.type === 'partial') {
+                                    // Hide typing indicator and show message
+                                    if (document.getElementById('typingIndicator')) {
+                                        document.getElementById('typingIndicator').remove();
+                                    }
+                                    aiMessageDiv.style.display = 'block';
+                                    
+                                    // Update the streaming message
+                                    aiMessageDiv.textContent = data.content;
+                                    document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+                                } else if (data.type === 'complete') {
+                                    // Final response received
+                                    showLoading(false);
+                                    
+                                    // Update final message
+                                    aiMessageDiv.textContent = data.ai_response;
+                                    aiMessageDiv.id = ''; // Remove ID so it's not updated anymore
+
+                                    // Add status messages
+                                    if (data.email_sent) {
+                                        addStatusMessage(`📧 Email sent: ${data.email_content}`);
+                                    }
+
+                                    if (data.weather_summary) {
+                                        addStatusMessage(`🌤️ Weather: ${data.weather_summary}`);
+                                    }
+
+                                    if (data.total_messages) {
+                                        addStatusMessage(`💾 Memory: ${data.total_messages} total messages stored`);
+                                    }
+                                } else if (data.type === 'error') {
+                                    showLoading(false);
+                                    if (document.getElementById('typingIndicator')) {
+                                        document.getElementById('typingIndicator').remove();
+                                    }
+                                    aiMessageDiv.remove();
+                                    addStatusMessage(`❌ Error: ${data.error}`, true);
+                                }
+                            } catch (parseError) {
+                                console.error('Error parsing streaming data:', parseError);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                showLoading(false);
+                if (document.getElementById('typingIndicator')) {
+                    document.getElementById('typingIndicator').remove();
+                }
+                if (document.getElementById('currentAiMessage')) {
+                    document.getElementById('currentAiMessage').remove();
+                }
+                addStatusMessage(`❌ Network error: ${error.message}`, true);
+            }
+        }
+
+        async function clearChat() {
+            if (confirm('Are you sure you want to clear the chat memory?')) {
+                try {
+                    const response = await fetch('/clear', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        // Clear the chat display
+                        document.getElementById('chatMessages').innerHTML = `
+                            <div class="agent-info">
+                                <strong>Agent Capabilities:</strong> Send emails via Gmail, get real-time weather, tell jokes, share wisdom, and more! 
+                                <br><strong>Personal Info:</strong> Helping Mustafa Alnagdy (ML/AI agent developer intern at MIS company)
+                            </div>
+                            <div class="example-commands">
+                                <h4>💡 Try these commands:</h4>
+                                <div class="command" onclick="sendMessage('Hello, how are you?')">Hello, how are you?</div>
+                                <div class="command" onclick="sendMessage('What time is it now?')">What time is it now?</div>
+                                <div class="command" onclick="sendMessage('send a joke to test@example.com')">Send a joke to test@example.com</div>
+                                <div class="command" onclick="sendMessage('send weather info to friend@example.com')">Send weather info to friend@example.com</div>
+                                <div class="command" onclick="sendMessage('ask the same email if he is free tomorrow')">Ask the same email if he is free tomorrow</div>
+                            </div>
+                        `;
+                        addStatusMessage('✅ Chat memory cleared successfully!');
+                    } else {
+                        addStatusMessage(`❌ Error clearing memory: ${data.error}`, true);
+                    }
+                } catch (error) {
+                    addStatusMessage(`❌ Network error: ${error.message}`, true);
+                }
+            }
+        }
+
+        // Allow Enter key to send message
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

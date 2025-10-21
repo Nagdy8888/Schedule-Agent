@@ -68,13 +68,14 @@ def create_agent_graph():
     return app
 
 
-def run_agent(user_input: str, app=None):
+def run_agent(user_input: str, app=None, silent=False):
     """Run the agent with a user input."""
     if app is None:
         app = create_agent_graph()
     
-    print(f"\nStarting agent with input: '{user_input}'")
-    print("=" * 50)
+    if not silent:
+        print(f"\nStarting agent with input: '{user_input}'")
+        print("=" * 50)
     
     # Create initial state
     initial_state = {
@@ -95,25 +96,27 @@ def run_agent(user_input: str, app=None):
     
     # Run the graph
     result = app.invoke(initial_state)
-    print("=" * 50)
-    print("Agent execution completed!")
-    print(f"Total messages: {len(result['messages'])}")
-    print(f"Complete: {result['is_complete']}")
     
-    # Show email status
-    if result.get('email_sent', False):
-        print(f"Email sent: {result['email_content']}")
-    else:
-        print("No email sent")
-    
-    # Show weather status
-    if result.get('weather_summary'):
-        print(f"Weather: {result['weather_summary']}")
-    
-    # Show memory stats
-    memory = get_memory()
-    stats = memory.get_memory_stats()
-    print(f"Memory: {stats['total_messages']} total messages stored")
+    if not silent:
+        print("=" * 50)
+        print("Agent execution completed!")
+        print(f"Total messages: {len(result['messages'])}")
+        print(f"Complete: {result['is_complete']}")
+        
+        # Show email status
+        if result.get('email_sent', False):
+            print(f"Email sent: {result['email_content']}")
+        else:
+            print("No email sent")
+        
+        # Show weather status
+        if result.get('weather_summary'):
+            print(f"Weather: {result['weather_summary']}")
+        
+        # Show memory stats
+        memory = get_memory()
+        stats = memory.get_memory_stats()
+        print(f"Memory: {stats['total_messages']} total messages stored")
     
     return result
 
