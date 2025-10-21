@@ -233,47 +233,52 @@ def should_send_email(state: AgentState) -> bool:
     """Determine if we should send an email based on user input."""
     user_input_lower = state["user_input"].lower()
     
-    # Only send emails when explicitly requested with specific patterns
+    # Check if there's an email address in the input
+    has_email = bool(re.search(r'@\w+\.\w+', user_input_lower))
+    
+    # Check for any content delivery request with an email address
+    content_delivery_words = [
+        'send', 'email', 'message', 'tell', 'share', 'give', 'write', 'compose',
+        'forward', 'pass', 'deliver', 'transmit', 'communicate', 'inform'
+    ]
+    
+    # Check for any content type that could be sent
+    content_types = [
+        'joke', 'roast', 'wisdom', 'quote', 'advice', 'tip', 'story', 'news',
+        'weather', 'info', 'data', 'update', 'reminder', 'greeting', 'hello',
+        'congratulations', 'thanks', 'apology', 'invitation', 'announcement',
+        'funny', 'serious', 'important', 'urgent', 'personal', 'professional'
+    ]
+    
+    # Smart detection: If there's an email address AND any content delivery word
+    if has_email and any(word in user_input_lower for word in content_delivery_words):
+        return True
+    
+    # Smart detection: If there's an email address AND any content type
+    if has_email and any(word in user_input_lower for word in content_types):
+        return True
+    
+    # Check for explicit email sending patterns
     email_patterns = [
-        r'send.*email.*to',
-        r'send.*message.*to',
         r'send.*to.*@',
         r'email.*to.*@',
         r'message.*to.*@',
-        r'send.*gmail.*to',
-        r'write.*email.*to',
-        r'compose.*email.*to',
-        r'send.*email.*with',
-        r'send.*email.*about',
-        r'send.*email.*info',
-        r'email.*with.*weather',
-        r'email.*weather.*info',
-        r'send.*weather.*email',
-        r'send.*weather.*info.*to',
-        r'send.*weather.*data.*to',
-        r'weather.*info.*to.*@',
-        r'weather.*data.*to.*@'
+        r'tell.*to.*@',
+        r'share.*with.*@',
+        r'give.*to.*@',
+        r'write.*to.*@',
+        r'compose.*to.*@'
     ]
     
-    # Check for explicit email sending requests
     for pattern in email_patterns:
         if re.search(pattern, user_input_lower):
             return True
     
-    # Also check for direct commands with email addresses
-    if re.search(r'@\w+\.\w+', user_input_lower) and any(word in user_input_lower for word in ['send', 'email', 'message']):
-        return True
-    
-    # Check for email requests without specific address (like "send email to my manager")
-    if any(phrase in user_input_lower for phrase in ['send email to my', 'send message to my', 'email my', 'message my']):
-        return True
-    
-    # Check for weather-related email requests
-    if any(phrase in user_input_lower for phrase in ['send weather', 'email weather', 'weather info', 'weather data', 'send weather info', 'send weather data']):
-        return True
-    
-    # Check for general email sending requests
-    if any(phrase in user_input_lower for phrase in ['send email', 'send an email', 'send the email', 'email the', 'email this']):
+    # Check for general email requests with content
+    if any(phrase in user_input_lower for phrase in [
+        'send email', 'send message', 'email this', 'message this',
+        'send to', 'email to', 'message to', 'tell to', 'share with'
+    ]):
         return True
     
     return False
