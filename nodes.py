@@ -114,7 +114,20 @@ def send_gmail_message(state: AgentState) -> AgentState:
             to_email = email_matches[0]  # Use the first email found
             print(f"Found email in message: {to_email}")
         else:
-            print(f"No email found")
+            # Check if user is referencing "same email" or similar
+            user_input_lower = state["user_input"].lower()
+            same_email_phrases = [
+                'same email', 'same address', 'that email', 'the email', 'last email',
+                'previous email', 'him', 'her', 'them'
+            ]
+            
+            if (any(phrase in user_input_lower for phrase in same_email_phrases) and 
+                state.get('last_email_used')):
+                to_email = state['last_email_used']
+                print(f"Using last email address: {to_email}")
+            else:
+                print(f"No email found")
+                to_email = "recipient@example.com"  # Default fallback
         
         # Extract subject from AI response first, then fallback to user input
         ai_response = state["ai_response"]
@@ -215,6 +228,7 @@ Your AI Assistant"""
         if success:
             state["email_sent"] = True
             state["email_content"] = f"Email sent to {to_email}: {subject}"
+            state["last_email_used"] = to_email  # Remember this email for future use
             print(f"SUCCESS: Email sent successfully to {to_email}")
         else:
             state["email_sent"] = False
@@ -236,10 +250,16 @@ def should_send_email(state: AgentState) -> bool:
     # Check if there's an email address in the input
     has_email = bool(re.search(r'@\w+\.\w+', user_input_lower))
     
+    # Check for "same email" references
+    same_email_phrases = [
+        'same email', 'same address', 'that email', 'the email', 'last email',
+        'previous email', 'him', 'her', 'them'
+    ]
+    
     # Check for any content delivery request with an email address
     content_delivery_words = [
         'send', 'email', 'message', 'tell', 'share', 'give', 'write', 'compose',
-        'forward', 'pass', 'deliver', 'transmit', 'communicate', 'inform'
+        'forward', 'pass', 'deliver', 'transmit', 'communicate', 'inform', 'ask'
     ]
     
     # Check for any content type that could be sent
@@ -247,7 +267,8 @@ def should_send_email(state: AgentState) -> bool:
         'joke', 'roast', 'wisdom', 'quote', 'advice', 'tip', 'story', 'news',
         'weather', 'info', 'data', 'update', 'reminder', 'greeting', 'hello',
         'congratulations', 'thanks', 'apology', 'invitation', 'announcement',
-        'funny', 'serious', 'important', 'urgent', 'personal', 'professional'
+        'funny', 'serious', 'important', 'urgent', 'personal', 'professional',
+        'question', 'check', 'availability', 'free', 'busy', 'schedule'
     ]
     
     # Smart detection: If there's an email address AND any content delivery word
@@ -256,6 +277,12 @@ def should_send_email(state: AgentState) -> bool:
     
     # Smart detection: If there's an email address AND any content type
     if has_email and any(word in user_input_lower for word in content_types):
+        return True
+    
+    # Smart detection: If referencing "same email" and there's a last email used
+    if (any(phrase in user_input_lower for phrase in same_email_phrases) and 
+        state.get('last_email_used') and 
+        any(word in user_input_lower for word in content_delivery_words + content_types)):
         return True
     
     # Check for explicit email sending patterns
@@ -267,7 +294,8 @@ def should_send_email(state: AgentState) -> bool:
         r'share.*with.*@',
         r'give.*to.*@',
         r'write.*to.*@',
-        r'compose.*to.*@'
+        r'compose.*to.*@',
+        r'ask.*to.*@'
     ]
     
     for pattern in email_patterns:
@@ -277,7 +305,7 @@ def should_send_email(state: AgentState) -> bool:
     # Check for general email requests with content
     if any(phrase in user_input_lower for phrase in [
         'send email', 'send message', 'email this', 'message this',
-        'send to', 'email to', 'message to', 'tell to', 'share with'
+        'send to', 'email to', 'message to', 'tell to', 'share with', 'ask'
     ]):
         return True
     

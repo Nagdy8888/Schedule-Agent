@@ -85,6 +85,7 @@ def run_agent(user_input: str, app=None):
         "email_subject": "Message from AI Agent",
         "email_sent": False,
         "email_content": "",
+        "last_email_used": "",  # Remember last email used
         "weather_data": {},
         "weather_summary": "",
         "needs_weather": False,

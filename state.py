@@ -24,16 +24,12 @@ class AgentState(TypedDict):
     email_subject: str
     email_sent: bool
     email_content: str
+    last_email_used: str  # Remember the last email address used
     
     # Weather functionality
     weather_data: Dict[str, Any]
     weather_summary: str
     needs_weather: bool
-    
-    # Time functionality
-    time_data: Dict[str, Any]
-    time_summary: str
-    needs_time: bool
     
     # Control flow
     is_complete: bool
