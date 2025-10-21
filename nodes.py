@@ -115,35 +115,45 @@ def send_gmail_message(state: AgentState) -> AgentState:
             to_email = "recipient@example.com"
             print(f"No email found, using default: {to_email}")
         
-        # Extract subject from user input or use default
-        if "subject" in user_input or "title" in user_input:
-            # Try to extract subject from user input
-            subject_match = re.search(r'(?:subject|title)[\s:]+([^.!?]+)', user_input, re.IGNORECASE)
-            if subject_match:
-                subject = subject_match.group(1).strip()
-            else:
-                subject = "Message from AI Agent"
-        else:
-            subject = "Message from AI Agent"
-        
-        # Extract proper email content from AI response
+        # Extract subject from AI response first, then fallback to user input
         ai_response = state["ai_response"]
         
-        # Try to extract the actual greeting/message content from AI response
-        # Look for patterns like "Body: Hello!" or "Hello! I hope you are doing well!"
-        body_patterns = [
-            r'\*\*Body:\*\*\s*([^*]+?)(?:\*|$)',  # **Body:** Hello! I hope...
-            r'Body:\s*([^*]+?)(?:\*|$)',  # Body: Hello! I hope...
-            r'Hello![^!]*!',  # Hello! I hope you are doing well!
-            r'Greeting[^!]*!',  # Greeting message
-        ]
+        # Try to extract subject from AI response
+        subject_match = re.search(r'Subject:\s*([^\n\r]+)', ai_response, re.IGNORECASE)
+        if subject_match:
+            subject = subject_match.group(1).strip()
+        else:
+            # Fallback: extract from user input or use default
+            if "subject" in user_input or "title" in user_input:
+                user_subject_match = re.search(r'(?:subject|title)[\s:]+([^.!?]+)', user_input, re.IGNORECASE)
+                if user_subject_match:
+                    subject = user_subject_match.group(1).strip()
+                else:
+                    subject = "Message from AI Agent"
+            else:
+                subject = "Message from AI Agent"
         
-        body = ai_response  # Default to full response
-        for pattern in body_patterns:
-            match = re.search(pattern, ai_response, re.IGNORECASE | re.DOTALL)
-            if match:
-                body = match.group(1).strip() if match.groups() else match.group(0).strip()
-                break
+        # Extract email body from AI response
+        # Look for content after "Subject:" line, stopping at common ending phrases
+        body_match = re.search(r'Subject:\s*[^\n\r]+\s*\n\s*(.+?)(?:\n\s*(?:I will send|Sending|I am sending|This will be sent).*)?$', ai_response, re.IGNORECASE | re.DOTALL)
+        if body_match:
+            body = body_match.group(1).strip()
+        else:
+            # Fallback: look for patterns like "Body:" or extract from common greeting patterns
+            body_patterns = [
+                r'Body:\s*([^*]+?)(?:\*|$)',  # Body: Hello! I hope...
+                r'\*\*Body:\*\*\s*([^*]+?)(?:\*|$)',  # **Body:** Hello! I hope...
+                r'Hello![^!]*!',  # Hello! I hope you are doing well!
+                r'Hi[^!]*!',  # Hi! How are you?
+                r'Greetings[^!]*!',  # Greeting message
+            ]
+            
+            body = ai_response  # Default to full response
+            for pattern in body_patterns:
+                match = re.search(pattern, ai_response, re.IGNORECASE | re.DOTALL)
+                if match:
+                    body = match.group(1).strip() if match.groups() else match.group(0).strip()
+                    break
         
         # If no specific pattern found, try to extract a simple greeting
         if body == ai_response:  # No pattern matched

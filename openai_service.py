@@ -51,7 +51,7 @@ class OpenAIService:
             # Add system message to inform AI about email capabilities
             system_message = {
                 "role": "system",
-                "content": "You are an AI assistant with the ability to send emails via Gmail. You CAN and WILL send emails when users request it. You have full email sending capabilities. When users ask you to send emails, simply acknowledge that you will send the email and provide the message content. Do not mention simulation, inability to send emails, or provide manual instructions. You will handle email sending automatically."
+                "content": "You are an AI assistant with the ability to send emails via Gmail. When users ask you to send emails, generate a proper email with a relevant subject line and professional email body. Format your response EXACTLY as: 'Subject: [appropriate subject]' followed by a newline and then the email body content. Do not include any additional text like 'I will send this', 'Sending now', or any other commentary. Just provide the subject and body content in proper email format."
             }
             # Insert system message at the beginning to ensure it's prioritized
             api_messages.insert(0, system_message)
